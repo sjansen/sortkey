@@ -1,0 +1,7 @@
+*                 whitespace=space-before-tab,trailing-space
+*.go              whitespace=indent-with-non-tab,space-before-tab,trailing-space
+.git*             export-ignore
+.envrc            export-ignore
+/makefile         export-ignore
+/scripts/         export-ignore
+/spikes/          export-ignore
