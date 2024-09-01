@@ -7,7 +7,7 @@ import (
 )
 
 func TestDecrementInteger(t *testing.T) {
-	ks, err := NewKeySet("!#$%", "abcdef")
+	ks, err := NewCustomKeySet("!#$%", "abcdef")
 	if err != nil {
 		t.Fatalf("unexpected error: %e", err)
 	}
@@ -54,7 +54,7 @@ func TestDecrementInteger(t *testing.T) {
 }
 
 func TestIncrementInteger(t *testing.T) {
-	ks, err := NewKeySet("!#$%", "abcdef")
+	ks, err := NewCustomKeySet("!#$%", "abcdef")
 	if err != nil {
 		t.Fatalf("unexpected error: %e", err)
 	}
@@ -100,8 +100,8 @@ func TestIncrementInteger(t *testing.T) {
 	}
 }
 
-func TestNewGenerator(t *testing.T) {
-	for i, expected := range []*KeySet{{
+func TestNewCustomKeySet(t *testing.T) {
+	for i, expected := range []*CustomKeySet{{
 		sigils:    "",
 		digits:    "01",
 		zero:      "0",
@@ -149,7 +149,7 @@ func TestNewGenerator(t *testing.T) {
 		t.Run(string('A'+rune(i)), func(t *testing.T) {
 			require := require.New(t)
 
-			actual, err := NewKeySet(
+			actual, err := NewCustomKeySet(
 				expected.sigils,
 				expected.digits,
 			)
@@ -160,7 +160,7 @@ func TestNewGenerator(t *testing.T) {
 }
 
 func TestMidpoint(t *testing.T) {
-	ks, err := NewKeySet("", Base10)
+	ks, err := NewCustomKeySet("", Base10)
 	require.NoError(t, err)
 
 	for i, tc := range []struct {
@@ -207,7 +207,7 @@ func TestMidpoint(t *testing.T) {
 func TestParse(t *testing.T) {
 	require := require.New(t)
 
-	ks, err := NewKeySet("#$%", "0123456789abcdef")
+	ks, err := NewCustomKeySet("#$%", "0123456789abcdef")
 	require.NoError(err)
 
 	for i, tc := range []struct {

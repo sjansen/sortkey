@@ -12,9 +12,9 @@ const NoVowels = "BCDFGHJKLMNPQRSTVWXZbcdfghjklmnpqrstvwxz"
 
 const Base10 = "0123456789"
 const Base62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-const Base95 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+const Base94 = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
-type KeySet struct {
+type CustomKeySet struct {
 	sigils   string
 	digits   string
 	zero     SortKey
@@ -27,7 +27,7 @@ type KeySet struct {
 
 type SortKey string
 
-func NewKeySet(sigils, digits string) (*KeySet, error) {
+func NewCustomKeySet(sigils, digits string) (*CustomKeySet, error) {
 	if err := validateSigils(sigils); err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func NewKeySet(sigils, digits string) (*KeySet, error) {
 		return nil, err
 	}
 
-	ks := &KeySet{
+	ks := &CustomKeySet{
 		digits:    digits,
 		sigils:    sigils,
 		digitsIdx: make(map[byte]int, len(digits)),
@@ -148,7 +148,7 @@ func validateSigils(sigils string) error {
 	return nil
 }
 
-func (ks *KeySet) Between(a, b SortKey) (SortKey, error) {
+func (ks *CustomKeySet) Between(a, b SortKey) (SortKey, error) {
 	switch {
 	case a == "":
 		if b == "" {
@@ -224,7 +224,7 @@ func (ks *KeySet) Between(a, b SortKey) (SortKey, error) {
 	return pa.Value(), nil
 }
 
-func (ks *KeySet) decrementInteger(v *parsedKey) error {
+func (ks *CustomKeySet) decrementInteger(v *parsedKey) error {
 	borrow := true
 	for i := len(v.integer) - 1; borrow && i >= 0; i-- {
 		idx := ks.digitsIdx[v.integer[i]] - 1
@@ -253,7 +253,7 @@ func (ks *KeySet) decrementInteger(v *parsedKey) error {
 	return nil
 }
 
-func (ks *KeySet) incrementInteger(v *parsedKey) error {
+func (ks *CustomKeySet) incrementInteger(v *parsedKey) error {
 	carry := true
 	for i := len(v.integer) - 1; carry && i >= 0; i-- {
 		idx := ks.digitsIdx[v.integer[i]] + 1
@@ -282,7 +282,7 @@ func (ks *KeySet) incrementInteger(v *parsedKey) error {
 	return nil
 }
 
-func (ks *KeySet) midpoint(a, b []byte) ([]byte, error) {
+func (ks *CustomKeySet) midpoint(a, b []byte) ([]byte, error) {
 	if len(b) > 0 && bytes.Compare(a, b) >= 0 {
 		return nil, errors.New("a >= b") // TODO custom error
 	}
@@ -300,7 +300,7 @@ func (ks *KeySet) midpoint(a, b []byte) ([]byte, error) {
 	return result, nil
 }
 
-func (ks *KeySet) midpointPrefix(a, b []byte) []byte {
+func (ks *CustomKeySet) midpointPrefix(a, b []byte) []byte {
 	zero := ks.digits[0]
 	i := 0
 	for ; i < len(b); i++ {
@@ -318,7 +318,7 @@ func (ks *KeySet) midpointPrefix(a, b []byte) []byte {
 	return nil
 }
 
-func (ks *KeySet) midpointSuffix(a, b []byte) []byte {
+func (ks *CustomKeySet) midpointSuffix(a, b []byte) []byte {
 	result := make([]byte, 0, len(a)+1)
 	for {
 		digitA := 0
@@ -346,7 +346,7 @@ func (ks *KeySet) midpointSuffix(a, b []byte) []byte {
 	}
 }
 
-func (ks *KeySet) parse(value SortKey) (*parsedKey, error) {
+func (ks *CustomKeySet) parse(value SortKey) (*parsedKey, error) {
 	if value == "" {
 		return nil, &InvalidValueError{`sortkey too short: ""`}
 	}
@@ -376,7 +376,7 @@ func (ks *KeySet) parse(value SortKey) (*parsedKey, error) {
 	return result, nil
 }
 
-func (ks *KeySet) validateParsed(parsed *parsedKey) error {
+func (ks *CustomKeySet) validateParsed(parsed *parsedKey) error {
 	for _, x := range parsed.integer {
 		if _, ok := ks.digitsIdx[x]; !ok {
 			return &InvalidValueError{

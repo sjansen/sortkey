@@ -10,7 +10,7 @@ import (
 func TestNewGenerator(t *testing.T) {
 	require := require.New(t)
 
-	ks, err := sortkey.NewKeySet(sortkey.Alpha, sortkey.Base10)
+	ks, err := sortkey.NewCustomKeySet(sortkey.Alpha, sortkey.Base10)
 	if err != nil {
 		t.Fatalf("unexpected error: %e", err)
 	}
@@ -21,7 +21,7 @@ func TestNewGenerator(t *testing.T) {
 }
 
 func TestBetween(t *testing.T) {
-	ks, err := sortkey.NewKeySet(sortkey.Alpha, sortkey.Base10)
+	ks, err := sortkey.NewCustomKeySet(sortkey.Alpha, sortkey.Base10)
 	if err != nil {
 		t.Fatalf("unexpected error: %e", err)
 	}
@@ -73,11 +73,11 @@ func TestValidateDigits(t *testing.T) {
 		{"aZ", "unsorted digit: Z"},
 		{sortkey.Base10, ""},
 		{sortkey.Base62, ""},
-		{sortkey.Base95, ""},
+		{sortkey.Base94, ""},
 	} {
 		tc := tc
 		t.Run(string('A'+rune(i)), func(t *testing.T) {
-			_, err := sortkey.NewKeySet(sortkey.Alpha, tc.digits)
+			_, err := sortkey.NewCustomKeySet(sortkey.Alpha, tc.digits)
 			if tc.expected == "" {
 				if err != nil {
 					t.Fatalf("Unexpected error: %#v", err)
@@ -102,7 +102,7 @@ func TestValidateSigils(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(string('A'+rune(i)), func(t *testing.T) {
-			_, err := sortkey.NewKeySet(tc.sigils, sortkey.Base10)
+			_, err := sortkey.NewCustomKeySet(tc.sigils, sortkey.Base10)
 			if tc.expected == "" {
 				if err != nil {
 					t.Fatalf("Unexpected error: %#v", err)
