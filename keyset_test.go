@@ -61,6 +61,44 @@ func TestBetween(t *testing.T) {
 	}
 }
 
+func TestNBetween(t *testing.T) {
+	ks, err := sortkey.NewCustomKeySet(sortkey.Alpha, sortkey.Base10)
+	if err != nil {
+		t.Fatalf("unexpected error: %e", err)
+	}
+
+	for i, tc := range []struct {
+		a, b     sortkey.SortKey
+		n        int
+		expected []sortkey.SortKey
+	}{
+		{"", "", 0, []sortkey.SortKey{}},
+		{"a1", "a2", 1, []sortkey.SortKey{"a15"}},
+		{"", "", 5, []sortkey.SortKey{
+			"a0", "a1", "a2", "a3", "a4",
+		}},
+		{"a4", "", 10, []sortkey.SortKey{
+			"a5", "a6", "a7", "a8", "a9", "b00", "b01", "b02", "b03", "b04",
+		}},
+		{"", "a0", 5, []sortkey.SortKey{
+			"Z5", "Z6", "Z7", "Z8", "Z9",
+		}},
+		{"a0", "a2", 20, []sortkey.SortKey{
+			"a01", "a02", "a03", "a035", "a04", "a05", "a06", "a07", "a08", "a09",
+			"a1", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19",
+		}},
+	} {
+		tc := tc
+		t.Run(string('A'+rune(i)), func(t *testing.T) {
+			require := require.New(t)
+
+			actual, err := ks.NBetween(tc.a, tc.b, tc.n)
+			require.NoError(err)
+			require.Equal(tc.expected, actual)
+		})
+	}
+}
+
 func TestValidateDigits(t *testing.T) {
 	for i, tc := range []struct {
 		digits   string
@@ -71,9 +109,12 @@ func TestValidateDigits(t *testing.T) {
 		{"01", ""},
 		{"0𐅂", "non-ascii digit: 𐅂"},
 		{"aZ", "unsorted digit: Z"},
+		{sortkey.Alpha, ""},
+		{sortkey.NoVowels, ""},
 		{sortkey.Base10, ""},
 		{sortkey.Base62, ""},
 		{sortkey.Base94, ""},
+		{sortkey.Base95, ""},
 	} {
 		tc := tc
 		t.Run(string('A'+rune(i)), func(t *testing.T) {
@@ -99,6 +140,11 @@ func TestValidateSigils(t *testing.T) {
 		{"aZ", "unsorted sigil: Z"},
 		{"", ""},
 		{sortkey.Alpha, ""},
+		{sortkey.NoVowels, ""},
+		{sortkey.Base10, ""},
+		{sortkey.Base62, ""},
+		{sortkey.Base94, ""},
+		{sortkey.Base95, ""},
 	} {
 		tc := tc
 		t.Run(string('A'+rune(i)), func(t *testing.T) {

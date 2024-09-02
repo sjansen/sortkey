@@ -13,6 +13,7 @@ const NoVowels = "BCDFGHJKLMNPQRSTVWXZbcdfghjklmnpqrstvwxz"
 const Base10 = "0123456789"
 const Base62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 const Base94 = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+const Base95 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
 type CustomKeySet struct {
 	sigils   string
@@ -222,6 +223,66 @@ func (ks *CustomKeySet) Between(a, b SortKey) (SortKey, error) {
 	}
 	pa.fraction = tmp
 	return pa.Value(), nil
+}
+
+func (ks *CustomKeySet) NBetween(a, b SortKey, n int) ([]SortKey, error) {
+	result := make([]SortKey, n)
+	if err := ks.nBetween(a, b, result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (ks *CustomKeySet) nBetween(a, b SortKey, result []SortKey) error {
+	n := len(result)
+	if n < 1 {
+		return nil
+	}
+	if n == 1 {
+		c, err := ks.Between(a, b)
+		result[0] = c
+		return err
+	}
+	if b == "" {
+		c, err := ks.Between(a, b)
+		if err != nil {
+			return err
+		}
+		result[0] = c
+		for i := 1; i < n; i++ {
+			c, err = ks.Between(c, b)
+			if err != nil {
+				return err
+			}
+			result[i] = c
+		}
+		return nil
+	}
+	if a == "" {
+		c, err := ks.Between(a, b)
+		if err != nil {
+			return err
+		}
+		result[n-1] = c
+		for i := n - 2; i >= 0; i-- {
+			c, err = ks.Between(a, c)
+			if err != nil {
+				return err
+			}
+			result[i] = c
+		}
+		return nil
+	}
+	mid := n / 2
+	c, err := ks.Between(a, b)
+	if err != nil {
+		return err
+	}
+	if err = ks.nBetween(a, c, result[0:mid]); err != nil {
+		return err
+	}
+	result[mid] = c
+	return ks.nBetween(c, b, result[mid+1:])
 }
 
 func (ks *CustomKeySet) decrementInteger(v *parsedKey) error {
