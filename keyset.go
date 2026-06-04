@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math"
 )
 
 const Alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -223,7 +222,7 @@ func (ks *CustomKeySet) Between(a, b SortKey) (SortKey, error) {
 
 	tmp, err := ks.midpoint(pa.fraction, nil)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	pa.fraction = tmp
 	return pa.Value(), nil
@@ -395,7 +394,7 @@ func (ks *CustomKeySet) midpointSuffix(a, b []byte) []byte {
 			digitB = ks.digitsIdx[b[0]]
 		}
 		if digitB-digitA > 1 {
-			midDigit := int(math.Round(0.5 * float64(digitA+digitB)))
+			midDigit := (digitA + digitB + 1) / 2
 			return append(result, ks.digits[midDigit])
 		}
 
@@ -429,11 +428,10 @@ func (ks *CustomKeySet) parse(value SortKey) (*parsedKey, error) {
 		}
 	}
 
-	tmp := string(value)
 	result := &parsedKey{
 		sigil:    sigil,
-		integer:  []byte(tmp[1:n]),
-		fraction: []byte(tmp[n:]),
+		integer:  []byte(value[1:n]),
+		fraction: []byte(value[n:]),
 	}
 	if err := ks.validateParsed(result); err != nil {
 		return nil, err
@@ -459,7 +457,7 @@ func (ks *CustomKeySet) validateParsed(parsed *parsedKey) error {
 	n := len(parsed.fraction)
 	if n > 0 && parsed.fraction[n-1] == ks.digits[0] {
 		return &InvalidValueError{
-			fmt.Sprintf("trailing zero: %q", ks.digits[0]),
+			fmt.Sprintf("trailing zero: %q", parsed),
 		}
 	}
 	return nil
