@@ -200,6 +200,10 @@ func (ks *CustomKeySet) Between(a, b SortKey) (SortKey, error) {
 		return "", err
 	}
 
+	if pa.Compare(pb) >= 0 {
+		return "", &InvalidValueError{"a >= b"}
+	}
+
 	if pa.sigil == pb.sigil && bytes.Equal(pa.integer, pb.integer) {
 		if fa, err := ks.midpoint(pa.fraction, pb.fraction); err != nil {
 			return "", err

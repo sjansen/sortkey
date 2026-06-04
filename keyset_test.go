@@ -61,6 +61,29 @@ func TestBetween(t *testing.T) {
 	}
 }
 
+func TestBetweenErrors(t *testing.T) {
+	ks, err := sortkey.NewCustomKeySet(sortkey.Alpha, sortkey.Base10)
+	if err != nil {
+		t.Fatalf("unexpected error: %e", err)
+	}
+
+	for i, tc := range []struct {
+		a, b sortkey.SortKey
+	}{
+		{"a1", "a1"},  // equal
+		{"a5", "a1"},  // same sigil, a > b
+		{"b00", "a9"}, // different sigil, a > b
+	} {
+		tc := tc
+		t.Run(string('A'+rune(i)), func(t *testing.T) {
+			_, err := ks.Between(tc.a, tc.b)
+			if err == nil {
+				t.Fatalf("expected error for Between(%q, %q), got nil", tc.a, tc.b)
+			}
+		})
+	}
+}
+
 func TestNBetween(t *testing.T) {
 	ks, err := sortkey.NewCustomKeySet(sortkey.Alpha, sortkey.Base10)
 	if err != nil {
